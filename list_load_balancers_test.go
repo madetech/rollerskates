@@ -6,15 +6,17 @@ import (
 )
 
 type AwsMockAdapterState struct {
-	instanceIds []string
+	instanceIds         []string
+	loadBalancerNameSpy chan string
 }
 
-func ( s AwsMockAdapterState ) GetInstanceIds( loadBalancerName string ) [] string {
+func ( s AwsMockAdapterState ) GetInstanceIds(loadBalancerName string) [] string {
+	s.loadBalancerNameSpy <- loadBalancerName
 	return s.instanceIds
 }
 
 func Execute(loadBalancerName string, instanceIds []string) [] LoadBalancerInstance {
-	awsAdapter := AwsMockAdapterState{instanceIds: instanceIds}
+	awsAdapter := AwsMockAdapterState{instanceIds: instanceIds, loadBalancerNameSpy: make(chan string, 1)}
 	return ListLoadBalancerInstances(awsAdapter, loadBalancerName)
 }
 
@@ -42,4 +44,13 @@ func TestGivenOneLoadBalancerInstanceThenInstanceShouldHaveId(t *testing.T) {
 	instances := Execute("some-client-loadbalance-name", []string{"fake-instance"})
 	assert.Equal(t, instances[0].id, "fake-instance")
 }
+
+func TestWhenCalledWithALoadBalancerNameThenExpectAwsToBeCalledWithThatName(t *testing.T) {
+	spy := make(chan string, 1)
+	awsAdapter := AwsMockAdapterState{instanceIds: []string{}, loadBalancerNameSpy: spy}
+	ListLoadBalancerInstances(awsAdapter, "load-balancer-name")
+	loadBalancerName := <-spy
+	assert.Equal(t, loadBalancerName, "load-balancer-name")
+}
+
 
