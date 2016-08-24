@@ -5,33 +5,33 @@ import (
 	"testing"
 )
 
-type MockAwsAdapterFunnyState struct {
+type RemoveFromLoadBalancerState struct {
 	removeFromLoadBalancerSpy chan [2]string
 }
 
-func (s MockAwsAdapterFunnyState) RemoveFromLoadBalancer(loadBalancerName string, instanceId string) {
+func (s RemoveFromLoadBalancerState) RemoveFromLoadBalancer(loadBalancerName string, instanceId string) {
 	s.removeFromLoadBalancerSpy <- [2]string{loadBalancerName, instanceId}
 }
 
-func GetMockAwsAdapter() MockAwsAdapterFunnyState {
-	return MockAwsAdapterFunnyState{removeFromLoadBalancerSpy: make(chan [2]string, 1)}
+func GetMockAwsAdapter() RemoveFromLoadBalancerState {
+	return RemoveFromLoadBalancerState{removeFromLoadBalancerSpy: make(chan [2]string, 1)}
 }
 
-func GetLoadBalancerNameUsed(adapter MockAwsAdapterFunnyState) string {
+func GetLoadBalancerNameUsed(adapter RemoveFromLoadBalancerState) string {
 	output := <-adapter.removeFromLoadBalancerSpy
 	return output[0]
 }
 
-func GetInstanceIdUsed(adapter MockAwsAdapterFunnyState) string {
+func GetInstanceIdUsed(adapter RemoveFromLoadBalancerState) string {
 	output := <-adapter.removeFromLoadBalancerSpy
 	return output[1]
 }
 
-func AssertLoadBalancerNameUsedIsEqualTo(expected string, t *testing.T, adapter MockAwsAdapterFunnyState) {
+func AssertLoadBalancerNameUsedIsEqualTo(expected string, t *testing.T, adapter RemoveFromLoadBalancerState) {
 	assert.Equal(t, GetLoadBalancerNameUsed(adapter), expected)
 }
 
-func AssertInstanceIdUsedIsEqualTo(expected string, t *testing.T, adapter MockAwsAdapterFunnyState) {
+func AssertInstanceIdUsedIsEqualTo(expected string, t *testing.T, adapter RemoveFromLoadBalancerState) {
 	assert.Equal(t, GetInstanceIdUsed(adapter), expected)
 }
 

@@ -1,9 +1,9 @@
 package rollerskates
 
-type AwsAdapterFunny interface {
+type LoadBalancerInstanceRemover interface {
 	RemoveFromLoadBalancer(loadBalancerName string, instanceId string)
 }
 
-func RestartLoadBalancerInstance(awsAdapter AwsAdapterFunny, loadBalancerName string, instanceId string) {
-	awsAdapter.RemoveFromLoadBalancer(loadBalancerName, instanceId)
+func RestartLoadBalancerInstance(remover LoadBalancerInstanceRemover, loadBalancerName string, instanceId string) {
+	remover.RemoveFromLoadBalancer(loadBalancerName, instanceId)
 }
