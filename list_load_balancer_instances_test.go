@@ -10,12 +10,12 @@ type AwsMockAdapterState struct {
 	loadBalancerNameSpy chan string
 }
 
-func ( s AwsMockAdapterState ) GetInstanceIds(loadBalancerName string) [] string {
+func (s AwsMockAdapterState) GetInstanceIds(loadBalancerName string) []string {
 	s.loadBalancerNameSpy <- loadBalancerName
 	return s.instanceIds
 }
 
-func Execute(loadBalancerName string, instanceIds []string) [] LoadBalancerInstance {
+func Execute(loadBalancerName string, instanceIds []string) []LoadBalancerInstance {
 	awsAdapter := AwsMockAdapterState{instanceIds: instanceIds, loadBalancerNameSpy: make(chan string, 1)}
 	return ListLoadBalancerInstances(awsAdapter, loadBalancerName)
 }
@@ -52,5 +52,3 @@ func TestWhenCalledWithALoadBalancerNameThenExpectAwsToBeCalledWithThatName(t *t
 	loadBalancerName := <-spy
 	assert.Equal(t, loadBalancerName, "load-balancer-name")
 }
-
-

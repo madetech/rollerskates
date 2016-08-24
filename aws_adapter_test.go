@@ -1,13 +1,13 @@
 package rollerskates
 
 import (
-	"testing"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/elb"
-	_ "github.com/orchestrate-io/dvr"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/joho/godotenv"
+	_ "github.com/orchestrate-io/dvr"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestCallToApi(t *testing.T) {

@@ -1,10 +1,10 @@
 package rollerskates
 
 type AwsAdapter interface {
-	GetInstanceIds(loadBalancerName string) [] string
+	GetInstanceIds(loadBalancerName string) []string
 }
 
-func ListLoadBalancerInstances(awsAdapter AwsAdapter, loadBalancerName string) [] LoadBalancerInstance {
+func ListLoadBalancerInstances(awsAdapter AwsAdapter, loadBalancerName string) []LoadBalancerInstance {
 	instances := []LoadBalancerInstance{}
 
 	for _, instanceId := range awsAdapter.GetInstanceIds(loadBalancerName) {
