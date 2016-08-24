@@ -17,6 +17,10 @@ func TestCallToApi(t *testing.T) {
 	assert.Equal(t, ids[0], "i-e0708cd1")
 }
 
+func TestReturnsTrueWhenConnectionsDrainedAndInstanceHasRestarted(t *testing.T) {
+  assert.Equal(t, RestartLoadBalancerInstance("testing", "i-e0708cd1"), true)
+}
+
 func GetInstanceIds(loadBalancerName string) []string {
 	svc := elb.New(session.New(), aws.NewConfig())
 
@@ -35,4 +39,25 @@ func GetInstanceIds(loadBalancerName string) []string {
 	}
 
 	return instances
+}
+
+func RestartLoadBalancerInstance(loadBalancerName string, instanceId string) bool {
+  svc := elb.New(session.New(), aws.NewConfig())
+
+  params := &elb.DeregisterInstancesFromLoadBalancerInput{
+		Instances: []*elb.Instance{
+      {
+        InstanceId: aws.String(instanceId),
+      },
+    },
+    LoadBalancerName: aws.String(loadBalancerName),
+	}
+
+  _, err := svc.DeregisterInstancesFromLoadBalancer(params)
+
+  if err != nil {
+		return false
+	}
+
+  return true
 }
