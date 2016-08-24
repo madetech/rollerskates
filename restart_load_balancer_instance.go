@@ -1,19 +1,21 @@
 package rollerskates
 
 type LoadBalancerInstanceRemover interface {
-	RemoveFromLoadBalancer(loadBalancerName string, instanceId string)
+	RemoveFromLoadBalancer(loadBalancerName string, instanceId string) bool
 }
 
 type InstanceRestarter interface {
-	RestartInstance(id string)
+	RestartInstance(id string) bool
 }
 
 type RestartLoadBalancerInstanceDependencies struct {
-	remover LoadBalancerInstanceRemover
+	remover   LoadBalancerInstanceRemover
 	restarter InstanceRestarter
 }
 
 func RestartLoadBalancerInstance(deps RestartLoadBalancerInstanceDependencies, loadBalancerName string, instanceId string) {
-	deps.remover.RemoveFromLoadBalancer(loadBalancerName, instanceId)
-	deps.restarter.RestartInstance(instanceId)
+	removalSuccessful := deps.remover.RemoveFromLoadBalancer(loadBalancerName, instanceId)
+	if removalSuccessful {
+		deps.restarter.RestartInstance(instanceId)
+	}
 }

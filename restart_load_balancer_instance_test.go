@@ -6,8 +6,9 @@ import (
 )
 
 type RemoveFromLoadBalancerState struct {
-	removeSpy chan [2]string
-	orderSpy  chan string
+	removeSuccess bool
+	removeSpy     chan [2]string
+	orderSpy      chan string
 }
 
 type RestartInstanceState struct {
@@ -15,14 +16,16 @@ type RestartInstanceState struct {
 	orderSpy   chan string
 }
 
-func (s RemoveFromLoadBalancerState) RemoveFromLoadBalancer(loadBalancerName string, instanceId string) {
+func (s RemoveFromLoadBalancerState) RemoveFromLoadBalancer(loadBalancerName string, instanceId string) bool {
 	s.orderSpy <- "RemoveFromLoadBalancer"
 	s.removeSpy <- [2]string{loadBalancerName, instanceId}
+	return s.removeSuccess
 }
 
-func (s RestartInstanceState) RestartInstance(id string) {
+func (s RestartInstanceState) RestartInstance(id string) bool {
 	s.orderSpy <- "RestartInstance"
 	s.restartSpy <- id
+	return true
 }
 
 type RestartLoadBalancerInstanceMockDependencies struct {
@@ -32,23 +35,23 @@ type RestartLoadBalancerInstanceMockDependencies struct {
 
 func (s RestartLoadBalancerInstanceMockDependencies) ConvertToProduction() RestartLoadBalancerInstanceDependencies {
 	return RestartLoadBalancerInstanceDependencies{
-		remover: s.remover,
+		remover:   s.remover,
 		restarter: s.restarter,
 	}
 }
 
-func GetDependencies() RestartLoadBalancerInstanceMockDependencies {
-
+func GetDependencies(removeSuccess bool) RestartLoadBalancerInstanceMockDependencies {
 	globalSpyChannel := make(chan string, 3)
 
 	return RestartLoadBalancerInstanceMockDependencies{
 		remover: RemoveFromLoadBalancerState{
-			removeSpy: make(chan [2]string, 1),
-			orderSpy: globalSpyChannel,
+			removeSuccess: removeSuccess,
+			removeSpy:     make(chan [2]string, 1),
+			orderSpy:      globalSpyChannel,
 		},
 		restarter: RestartInstanceState{
 			restartSpy: make(chan string, 1),
-			orderSpy: globalSpyChannel,
+			orderSpy:   globalSpyChannel,
 		},
 	}
 }
@@ -80,36 +83,52 @@ func AssertInstanceIdRestartedIsEqualTo(expected string, t *testing.T, deps Rest
 	assert.Equal(t, GetInstanceIdRestarted(deps.restarter), expected)
 }
 
+func AssertChannelHasNoMoreMessages(t *testing.T, channel chan string) {
+	select {
+	case <-channel:
+		t.Fail()
+	default:
+		//noop
+	}
+}
+
 func ExecuteRestartLoadBalancerInstance(deps RestartLoadBalancerInstanceMockDependencies, loadBalancerName string, expectedInstanceId string) {
 	RestartLoadBalancerInstance(deps.ConvertToProduction(), loadBalancerName, expectedInstanceId)
 }
 
 func TestGivenInstanceThenInstanceShouldBeRemoved1(t *testing.T) {
-	deps := GetDependencies()
+	deps := GetDependencies(true)
 	expectedLoadBalancerName := "load-balancer-name"
 	ExecuteRestartLoadBalancerInstance(deps, expectedLoadBalancerName, "")
 	AssertLoadBalancerNameRemovedIsEqualTo(expectedLoadBalancerName, t, deps)
 }
 
 func TestGivenInstanceThenInstanceShouldBeRemoved(t *testing.T) {
-	deps := GetDependencies()
+	deps := GetDependencies(true)
 	expectedInstanceId := "instance-id-to-restart"
 	ExecuteRestartLoadBalancerInstance(deps, "", expectedInstanceId)
 	AssertInstanceIdRemovedIsEqualTo(expectedInstanceId, t, deps)
 }
 
 func TestGivenInstanceRemovedThenShouldRestartInstance(t *testing.T) {
-	deps := GetDependencies()
+	deps := GetDependencies(true)
 	expectedInstanceId := "instance-id-to-restart"
 	ExecuteRestartLoadBalancerInstance(deps, "", expectedInstanceId)
 	AssertInstanceIdRestartedIsEqualTo(expectedInstanceId, t, deps)
 }
 
 func TestInstanceRemovedBeforeRestart(t *testing.T) {
-	deps := GetDependencies()
+	deps := GetDependencies(true)
 	expectedInstanceId := "instance-id-to-restart"
 	ExecuteRestartLoadBalancerInstance(deps, "", expectedInstanceId)
 	assert.Equal(t, "RemoveFromLoadBalancer", <-deps.remover.orderSpy)
 	assert.Equal(t, "RestartInstance", <-deps.remover.orderSpy)
 }
 
+func TestGivenInstanceNotRemovedThenInstanceShouldNotBeRestarted(t *testing.T) {
+	deps := GetDependencies(false)
+	expectedInstanceId := "instance-id-to-restart"
+	ExecuteRestartLoadBalancerInstance(deps, "", expectedInstanceId)
+	assert.Equal(t, "RemoveFromLoadBalancer", <-deps.remover.orderSpy)
+	AssertChannelHasNoMoreMessages(t, deps.remover.orderSpy)
+}
