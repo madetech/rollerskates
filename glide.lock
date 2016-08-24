@@ -1,0 +1,10 @@
+hash: 9a402e80624511798e6fb1485be59e61365c44de34d3e71d43a75e00089fcbb8
+updated: 2016-08-24T09:44:39.044136752+01:00
+imports:
+- name: github.com/aws/aws-sdk-go
+  version: 41d27747f314ab5d608a470e23f1d92bd5249b0c
+- name: github.com/stretchr/testify
+  version: f390dcf405f7b83c997eac1b06768bb9f44dec18
+  subpackages:
+  - assert
+testImports: []
