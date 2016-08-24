@@ -14,6 +14,6 @@ type RestartLoadBalancerInstanceDependencies struct {
 }
 
 func RestartLoadBalancerInstance(deps RestartLoadBalancerInstanceDependencies, loadBalancerName string, instanceId string) {
-	deps.restarter.RestartInstance(instanceId)
 	deps.remover.RemoveFromLoadBalancer(loadBalancerName, instanceId)
+	deps.restarter.RestartInstance(instanceId)
 }
