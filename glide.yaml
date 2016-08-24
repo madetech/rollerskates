@@ -9,3 +9,5 @@ import:
 - package: github.com/orchestrate-io/dvr
 - package: github.com/joho/godotenv
   version: ^1.0.0
+- package: github.com/urfave/cli
+  version: ^1.18.0
