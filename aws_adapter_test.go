@@ -16,7 +16,7 @@ func TestCallToApi(t *testing.T) {
 
 func TestReturnsTrueWhenConnectionsDrainedAndInstanceHasRestarted(t *testing.T) {
   godotenv.Load()
-  assert.Equal(t, SkatesRestartLoadBalancerInstance("testing", "i-e0708cd1"), true)
+  assert.Equal(t, AwsRestartLoadBalancerInstance("testing", "i-e0708cd1"), true)
 }
 
 func TestDeregisterInstancesFromLoadBalancer(t *testing.T) {

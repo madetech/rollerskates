@@ -27,7 +27,7 @@ func GetInstanceIds(loadBalancerName string) []string {
 	return instances
 }
 
-func RestartLoadBalancerInstance(loadBalancerName string, instanceId string) bool {
+func AwsRestartLoadBalancerInstance(loadBalancerName string, instanceId string) bool {
 	deregistered := DeregisterInstancesFromLoadBalancer(loadBalancerName, instanceId)
 	if !deregistered {
 		return false
