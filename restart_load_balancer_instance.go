@@ -4,6 +4,16 @@ type LoadBalancerInstanceRemover interface {
 	RemoveFromLoadBalancer(loadBalancerName string, instanceId string)
 }
 
-func RestartLoadBalancerInstance(remover LoadBalancerInstanceRemover, loadBalancerName string, instanceId string) {
-	remover.RemoveFromLoadBalancer(loadBalancerName, instanceId)
+type InstanceRestarter interface {
+	RestartInstance(id string)
+}
+
+type RestartLoadBalancerInstanceDependencies struct {
+	remover LoadBalancerInstanceRemover
+	restarter InstanceRestarter
+}
+
+func RestartLoadBalancerInstance(deps RestartLoadBalancerInstanceDependencies, loadBalancerName string, instanceId string) {
+	deps.restarter.RestartInstance(instanceId)
+	deps.remover.RemoveFromLoadBalancer(loadBalancerName, instanceId)
 }
